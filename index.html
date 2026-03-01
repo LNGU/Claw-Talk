@@ -364,6 +364,7 @@
 
 
         var editing = false;
+        var editingHostId = null;
         var hosts = [];
         var pttTarget = null;
         
@@ -792,6 +793,22 @@
                 addSec.style.display = 'none';
                 document.getElementById('edit-toggle').innerHTML = '&#x270F;&#xFE0F; Edit hosts';
             }
+        }
+
+        
+        function editHostData(id) {
+            var h = hosts.find(function(x) { return x.id === id; });
+            if (!h) return;
+            editingHostId = id;
+            document.getElementById('new-name').value = h.name || '';
+            document.getElementById('new-url').value = h.url || '';
+            document.getElementById('new-token').value = h.token || '';
+            
+            document.querySelector('#add-section .section-title').textContent = 'Edit Host';
+            document.querySelector('#add-section .btn').textContent = 'Save Host';
+            
+            document.getElementById('add-section').style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
 
         function addHost() {
