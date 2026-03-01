@@ -744,7 +744,8 @@
                 html += '<a href="' + h.url + '" target="_blank">';
                 html += '<div class="host-icon">' + emoji + '</div>';
                 html += '<div class="host-info"><div class="host-name">' + h.name + '</div><div class="host-url">' + h.url + '</div></div></a>';
-                html += '<button class="host-del" onclick="deleteHost(' + i + ')">&#x1F5D1;</button>';
+                html += '<button class="host-edit" style="position: absolute; right: 55px; top: 18px; background: transparent; border: none; font-size: 20px; color: #ff5555; cursor: pointer; display: none;" onclick="event.preventDefault(); event.stopPropagation(); editHostData(\''+h.id+'\')">✏️</button>';
+                html += '<button class="host-del" onclick="event.preventDefault(); event.stopPropagation(); deleteHost(' + i + ')">&#x1F5D1;</button>';
                 html += '</div>';
             }
             container.innerHTML = html;
