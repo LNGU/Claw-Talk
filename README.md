@@ -1,13 +1,16 @@
 # Claw-Talk
 
-A lightning-fast, mobile-friendly Push-To-Talk (PTT) web interface for [OpenClaw](https://github.com/openclaw/openclaw). It allows you to seamlessly beam voice commands to multiple OpenClaw Gateways (like your desktop, server, or raspberry pi) straight from your a browser including iOS from a singel html page.
+A lightning-fast, mobile-friendly Push-To-Talk (PTT) web interface for [OpenClaw](https://github.com/openclaw/openclaw). It allows you to seamlessly beam voice commands to multiple OpenClaw Gateways (like your desktop, server, or raspberry pi) straight from your browser (including iOS) from a single HTML page.
 
 ## 🚀 Why This App?
 
 - **Mobile-First & Extension-Free:** Other solutions are built as heavy desktop Chrome Extensions. This is a pure web app that works flawlessly in iOS Safari and mobile browsers.
 - **Zero Backend Required:** No need to stand up complex FastAPI or Node.js proxy servers. This app is 100% static HTML/JS—it connects directly to Azure and directly to your Gateway WebSocket. Host it anywhere (even GitHub Pages) for free!
 - **Bypasses iOS Dictation Limits:** We uniquely solve the notorious Apple iOS Safari background dictation timeouts by integrating the raw Microsoft Azure Speech SDK directly into the browser, guaranteeing perfect audio capture every time.
-- **Multi-Gateway Switching:** Instantly swap between multiple OpenClaw Gateways (e.g. your desktop, a VPS, or a Raspberry Pi) with a single tap. One UI to rule all your agents.
+- **Multi-Gateway Switching (Host-Specific Tokens):** Instantly swap between multiple OpenClaw Gateways (e.g. your desktop, a VPS, or a Raspberry Pi) with a single tap. API authentication tokens are uniquely bound to each specific host profile, completely eliminating CORS or `operator.write` scope errors when switching between physically different machines.
+- **Native Text-to-Speech (TTS):** Agent replies are natively converted to spoken audio utilizing the browser's built-in `SpeechSynthesis` engine, eliminating the need for expensive third-party TTS APIs.
+- **Visual Chat History:** A unified interface maintains a reverse-chronological chat log. The physical UI is strictly locked in height to prevent layout jumping or DOM reflows—making it perfect and safe to use while driving.
+- **Auto-Saving Configuration:** No save buttons required. Your API keys and gateway configurations automatically save and encrypt into your browser's `localStorage` the moment you type them.
 
 ## 🌟 How It Works
 
@@ -49,10 +52,13 @@ You can now open your Tailscale URL (e.g., `https://your-machine.tailnet.ts.net/
 
 ### 3. Connect to OpenClaw
 1. Open the Web UI on your device.
-2. Under Settings, Enter your **OpenClaw API Token** (find this by running `openclaw token list` on your server) and the **Azure API key**.
-4. Go to the **Hosts** tab and add your Gateway Name, URL, and gateway token (e.g., `https://your-machine.tailnet.ts.net/api/`).
-   *Note: If you have multiple OpenClaw instances, you can use the same token by running `openclaw token create --token <YOUR_TOKEN>` on one machine and add them to other machines.
-5. Select your target openclaw, press and hold the microphone button (allow microphone only for the first use), wait for it to tun red, then speak!
+2. Under the **Settings** tab, enter your **Azure API key**. The UI will automatically save it.
+3. Go to the **Hosts** tab and click **Edit hosts**. 
+4. Add your Gateway Name, URL, and **Gateway Token** (e.g., `https://your-machine.tailnet.ts.net/api/`).
+   *Note: To find your token, run `cat ~/.openclaw/openclaw.json | grep token` on the physical machine hosting that specific Gateway.*
+5. Select your target OpenClaw host from the list.
+6. Press and hold the microphone button (allow microphone permissions on first use). Wait for it to turn red, then speak!
+7. To interrupt the agent's Text-to-Speech reply, simply press the PTT button again.
 
 ## 🔐 Security
 Your API tokens and configuration are stored exclusively in your browser's local `localStorage`. The app communicates directly with Azure and your OpenClaw Gateway; there is no middleman server.
