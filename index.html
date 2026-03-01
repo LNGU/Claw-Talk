@@ -247,7 +247,7 @@
                 <div class="tab-panel" id="panel-settings">
             <div class="settings-group">
                 <label>OpenClaw API Token</label>
-                <input type="text" id="api-token" placeholder="Paste your openclaw token..." autocomplete="off">
+                <input type="text" id="api-token-ui" placeholder="Paste your openclaw token..." autocomplete="off">
             </div>
             
             <div class="settings-group">
@@ -308,6 +308,11 @@
             });
             
             populateVoices();
+            var hiddenToken = document.getElementById('api-token');
+            var uiToken = document.getElementById('api-token-ui');
+            if (hiddenToken && uiToken && !uiToken.value) {
+                uiToken.value = hiddenToken.value;
+            }
 
 
             if (pttBtn) {
@@ -414,6 +419,8 @@
             pttStatusEl.textContent = 'Sending to ' + target.name + '…';
             
             var token = document.getElementById('api-token') ? document.getElementById('api-token').value : '';
+            var uiToken = document.getElementById('api-token-ui');
+            if (uiToken && uiToken.value) token = uiToken.value;
             // Clean up the target URL to ensure we don't double up /api/
             var cleanUrl = target.url.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:').replace(/\/$/, '').replace(/\/api$/, '');
             var wsUrl = cleanUrl + '/api/rpc?token=' + token;
