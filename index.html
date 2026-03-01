@@ -148,6 +148,51 @@
             border: 1px solid #ffffff15; background: #1a1a2e;
             color: #fff; font-size: 14px; outline: none;
         }
+    
+        /* --- NEW CHAT UI --- */
+        .chat-log {
+            flex-grow: 1;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 150px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .chat-bubble {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+            word-wrap: break-word;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #6c5ce7 0%, #8e7dff 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1f1f1;
+            border-bottom-left-radius: 4px;
+        }
+        .host-switch-btn {
+            padding: 10px 16px; /* slightly smaller */
+            font-size: 14px;
+        }
+        .panel { display: none; flex-direction: column; flex-grow: 1; }
+        .panel.active { display: flex; }
+    
     </style>
 </head>
 <body>
@@ -249,6 +294,7 @@
             pttBtn.classList.add('recording');
             pttStatusEl.textContent = 'Listening via Azure...';
             sttOutput.textContent = '';
+            sttOutput.style.display = 'block';
             
             var key = "5hQ12rQR3KDGCaxD2JD1lORCaIiJXFYveIFGXMwtFr17KVUGbNiWJQQJ99CBACYeBjFXJ3w3AAAYACOGPnJQ";
             var region = "eastus";
@@ -374,21 +420,30 @@
                     } else if (msg.id && msg.id.startsWith("chat-")) {
                         if (msg.error) throw new Error("Send: " + msg.error.message);
                         pttStatusEl.textContent = 'Waiting for reply...';
-                        sttOutput.textContent = 'Message sent! ✅ Waiting...';
+                        sttOutput.style.display = 'none';
+                        
+                        var log = document.getElementById('chat-history');
+                        log.innerHTML += '<div class="chat-bubble chat-user">' + text + '</div>';
+                        log.scrollTop = log.scrollHeight;
+                        
                         // Do NOT close ws here! Wait for agent reply!
                     } else if (msg.event === "agent" && msg.payload && msg.payload.stream === "assistant") {
-                        sttOutput.textContent = msg.payload.data.text;
+                        // We store the text in a variable so we can push the final string to the UI
+                        window._activeAgentReply = msg.payload.data.text;
                     } else if (msg.event === "agent" && msg.payload && msg.payload.stream === "lifecycle" && msg.payload.data.phase === "end") {
                         // The agent finished talking!
                         pttStatusEl.textContent = 'Hold to talk';
                         
-                        var replyText = sttOutput.textContent;
-                        sttOutput.textContent = 'Speaking... 🗣️';
+                        var replyText = window._activeAgentReply || "Done.";
+                        window._activeAgentReply = "";
+                        
+                        var log = document.getElementById('chat-history');
+                        log.innerHTML += '<div class="chat-bubble chat-bot">' + replyText + '</div>';
+                        log.scrollTop = log.scrollHeight;
                         
                         // Speak the reply
                         var utterance = new SpeechSynthesisUtterance(replyText);
                         utterance.onend = function() {
-                            sttOutput.textContent = '';
                             ws.close();
                         };
                         window.speechSynthesis.speak(utterance);
