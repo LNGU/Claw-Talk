@@ -218,13 +218,20 @@
                 </div>
             </div>
         </div>
-        <div class="tab-panel active" id="panel-ptt">
-            <div class="ptt-container">
-                <div class="ptt-target">Target: <strong id="ptt-target-name">&mdash;</strong></div>
-                <div class="host-switcher" id="host-switcher"></div>
-                <div class="stt-output" id="stt-output"></div>
-                <button class="ptt-button" id="ptt-btn">&#x1F399;</button>
-                <div class="ptt-status" id="ptt-status">Tap to start speaking</div>
+                <div class="tab-panel active" id="panel-ptt" style="height: 100%; display: flex; flex-direction: column;">
+            <div class="ptt-container" style="flex-grow: 1; display: flex; flex-direction: column; height: 100%;">
+                <div class="ptt-target" style="flex-shrink: 0;">Target: <strong id="ptt-target-name">&mdash;</strong></div>
+                <div class="host-switcher" id="host-switcher" style="flex-shrink: 0;"></div>
+                
+                <div id="chat-history" class="chat-log" style="flex-grow: 1;">
+                    <div class="chat-bubble chat-bot">Hello! I am ready for your voice commands.</div>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex-shrink: 0;">
+                    <div class="stt-output" id="stt-output" style="display:none; width: 100%;"></div>
+                    <button class="ptt-button" id="ptt-btn">&#x1F399;</button>
+                    <div class="ptt-status" id="ptt-status">Hold to talk</div>
+                </div>
             </div>
         </div>
         <div class="tab-panel" id="panel-settings">
