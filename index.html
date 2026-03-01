@@ -751,8 +751,9 @@
                 html += '<div class="host-url">' + h.url + '</div>';
                 html += '</div>';
                 
-                html += '<button class="host-edit" style="position: absolute; right: 55px; top: 18px; background: transparent; border: none; font-size: 20px; color: #ff5555; cursor: pointer; display: none;" onclick="event.preventDefault(); event.stopPropagation(); editHostData(\''+h.id+'\')">✏️</button>';
-                html += '<button class="host-del" onclick="event.preventDefault(); event.stopPropagation(); deleteHost(\''+h.id+'\')">&#x1F5D1;</button>';
+                var safeId = h.id || '';
+                html += '<button class="host-edit" style="position: absolute; right: 55px; top: 18px; background: transparent; border: none; font-size: 20px; color: #ff5555; cursor: pointer; display: none;" onclick="event.preventDefault(); event.stopPropagation(); editHostData(\''+safeId+'\')">✏️</button>';
+                html += '<button class="host-del" onclick="event.preventDefault(); event.stopPropagation(); deleteHost(' + i + ')">&#x1F5D1;</button>';
                 
                 div.innerHTML = html;
                 list.appendChild(div);
