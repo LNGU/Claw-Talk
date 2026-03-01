@@ -50,8 +50,8 @@ You can now open your Tailscale URL (e.g., `https://your-machine.tailnet.ts.net/
 ### 3. Connect to OpenClaw
 1. Open the Web UI on your device.
 2. Under Settings, Enter your **OpenClaw API Token** (find this by running `openclaw token list` on your server) and the **Azure API key**.
-4. Go to the **Hosts** tab and add your Gateway URL (e.g., `https://your-machine.tailnet.ts.net/api/`).
-   *Note: If you have multiple OpenClaw instances, you can sync them to use the same token by running `openclaw token create --token <YOUR_TOKEN>` on your other machines.*
+4. Go to the **Hosts** tab and add your Gateway Name, URL, and gateway token (e.g., `https://your-machine.tailnet.ts.net/api/`).
+   *Note: If you have multiple OpenClaw instances, you can use the same token by running `openclaw token create --token <YOUR_TOKEN>` on one machine and add them to other machines.
 5. Select your target openclaw, press and hold the microphone button (allow microphone only for the first use), wait for it to tun red, then speak!
 
 ## 🔐 Security
