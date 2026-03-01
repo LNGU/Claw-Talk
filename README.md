@@ -34,22 +34,12 @@ We highly recommend using **Microsoft Azure's Free Tier (F0)** for Speech Servic
 
 ## 🚀 Setup & Installation
 
-### 1. Configure the Web App
-1. Clone or download this repository.
-2. Open `index.html` in any text editor.
-3. Locate the Azure configuration block inside the `startRecording` function:
-   ```javascript
-   var key = "YOUR_AZURE_API_KEY_HERE";
-   var region = "eastus"; // e.g., eastus, westus, westeurope
-   ```
-4. Paste your free Azure Speech key and region.
-
-### 2. Host the UI
+### 1. Host the UI
 Since it's a static file, you can host it easily:
 - **Locally:** `python3 -m http.server 8081`
 - **Cloud:** Drag and drop the folder into Vercel, Cloudflare Pages, or GitHub Pages.
 
-### 3. Expose via Tailscale (For Mobile/Remote Access)
+### 2. Expose via Tailscale (For Mobile/Remote Access)
 To access the UI securely from your iPhone/Android:
 ```bash
 # Proxy port 443 to your local Python server on port 8081
@@ -57,12 +47,12 @@ sudo tailscale serve --yes --bg --set-path / 127.0.0.1:8081
 ```
 You can now open your Tailscale URL (e.g., `https://your-machine.tailnet.ts.net/`) in Safari.
 
-### 4. Connect to OpenClaw
+### 3. Connect to OpenClaw
 1. Open the Web UI on your device.
-2. Enter your **OpenClaw API Token** (find this by running `openclaw token list` on your server).
-3. Go to the **Hosts** tab and add your Gateway URL (e.g., `https://your-machine.tailnet.ts.net/api/`).
+2. Under Settings, Enter your **OpenClaw API Token** (find this by running `openclaw token list` on your server) and the **Azure API key**.
+4. Go to the **Hosts** tab and add your Gateway URL (e.g., `https://your-machine.tailnet.ts.net/api/`).
    *Note: If you have multiple OpenClaw instances, you can sync them to use the same token by running `openclaw token create --token <YOUR_TOKEN>` on your other machines.*
-4. Select your target openclaw, press and hold the microphone button (allow microphone only for the first use), wait for it to tun red, then speak!
+5. Select your target openclaw, press and hold the microphone button (allow microphone only for the first use), wait for it to tun red, then speak!
 
 ## 🔐 Security
 Your API tokens and configuration are stored exclusively in your browser's local `localStorage`. The app communicates directly with Azure and your OpenClaw Gateway; there is no middleman server.
