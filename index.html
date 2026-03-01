@@ -427,7 +427,15 @@
                         log.innerHTML += '<div class="chat-bubble chat-user">' + text + '</div>';
                         log.scrollTop = log.scrollHeight;
                         
-                        // Do NOT close ws here! Wait for agent reply!
+                        // Safety timeout: If no reply in 20 seconds, reset the UI to prevent it from getting stuck!
+                        window._replyTimeout = setTimeout(function() {
+                            if (!window._replyProcessed) {
+                                window._replyProcessed = true;
+                                pttStatusEl.textContent = 'Hold to talk';
+                                ws.close();
+                            }
+                        }, 20000);
+                        
                     } else if (msg.event === "agent" && msg.payload && msg.payload.stream === "assistant") {
                         // We store the text in a variable so we can push the final string to the UI
                         window._activeAgentReply = msg.payload.data.text;
@@ -452,9 +460,10 @@
                         }
                     }
                     
-                    function finalizeReply(text) {
+                                        function finalizeReply(text) {
                         if (window._replyProcessed) return;
                         window._replyProcessed = true;
+                        if (window._replyTimeout) clearTimeout(window._replyTimeout);
                         
                         pttStatusEl.textContent = 'Hold to talk';
                         
@@ -463,8 +472,16 @@
                         log.scrollTop = log.scrollHeight;
                         
                         try {
+                            if (!window.speechSynthesis) { ws.close(); return; }
                             var utterance = new SpeechSynthesisUtterance(text);
+                            // Safety timeout for speech ending
+                            var speechTimeout = setTimeout(function() { ws.close(); }, 15000);
                             utterance.onend = function() {
+                                clearTimeout(speechTimeout);
+                                ws.close();
+                            };
+                            utterance.onerror = function() {
+                                clearTimeout(speechTimeout);
                                 ws.close();
                             };
                             window.speechSynthesis.speak(utterance);
