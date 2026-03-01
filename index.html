@@ -391,7 +391,7 @@
             pttBtn.classList.add('spinning');
             window._azureReady = false;
             pttStatusEl.innerHTML = 'Getting ready...';
-            sttOutput.textContent = '...';
+            sttOutput.textContent = 'Activating...';
             sttOutput.style.visibility = 'visible';
             
             var key = "5hQ12rQR3KDGCaxD2JD1lORCaIiJXFYveIFGXMwtFr17KVUGbNiWJQQJ99CBACYeBjFXJ3w3AAAYACOGPnJQ";
@@ -454,7 +454,7 @@
                     var text = sttOutput.textContent.trim();
                     try { if (recognizer) recognizer.close(); recognizer = null; } catch(err){}
                     
-                    if (text && text.length > 0 && text !== "..." && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
+                    if (text && text.length > 0 && text !== "..." && text !== "Activating..." && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
                         sendTextToGateway(text);
                     } else {
                         sttOutput.textContent = '';
@@ -473,7 +473,7 @@
                         var text = sttOutput.textContent.trim();
                         try { if (recognizer) recognizer.close(); recognizer = null; } catch(err){}
                         
-                        if (text && text.length > 0 && text !== "..." && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
+                        if (text && text.length > 0 && text !== "..." && text !== "Activating..." && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
                             sendTextToGateway(text);
                         } else {
                             sttOutput.textContent = 'No speech detected...';
