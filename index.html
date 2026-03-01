@@ -723,6 +723,30 @@
             }
         }
 
+        
+        function toggleEdit() {
+            editing = !editing;
+            var panel = document.getElementById('panel-hosts');
+            var addSec = document.getElementById('add-section');
+            if (editing) {
+                panel.classList.add('editing');
+                addSec.style.display = 'block';
+                document.getElementById('edit-toggle').innerHTML = '&#x2705; Done editing';
+            } else {
+                panel.classList.remove('editing');
+                addSec.style.display = 'none';
+                document.getElementById('edit-toggle').innerHTML = '&#x270F;&#xFE0F; Edit hosts';
+                // Reset edit mode
+                editingHostId = null;
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-url').value = '';
+                document.getElementById('new-token').value = '';
+                document.querySelector('#add-section .section-title').textContent = 'Add Host';
+                document.querySelector('#add-section .btn').textContent = 'Add Host';
+            }
+            renderHosts();
+        }
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
             document.querySelectorAll('.tab-panel').forEach(function(el) { el.classList.remove('active'); });
@@ -732,37 +756,55 @@
 
         
         function renderHosts() {
-            var list = document.getElementById('hosts-list');
+            var list = document.getElementById('hosts');
+            if (!list) return;
             list.innerHTML = '';
+            if (!hosts.length) { list.innerHTML = '<div class="empty">No hosts yet. Tap Edit to add one.</div>'; renderHostSwitcher(); return; }
+            var needsSave = false;
             for (var i = 0; i < hosts.length; i++) {
                 var h = hosts[i];
+                if (!h || typeof h !== 'object') continue;
+                if (!h.id) { h.id = 'h_' + Date.now() + '_' + i; needsSave = true; }
+                if (!h.name) h.name = 'Host ' + (i + 1);
+                if (!h.url) h.url = '';
                 var div = document.createElement('div');
-                div.className = 'host-item' + (pttTarget === h.id ? ' active' : '');
+                div.className = 'host-card' + (editing ? ' editing' : '');
                 div.onclick = (function(id) {
                     return function() {
                         pttTarget = id;
+                        localStorage.setItem('clawTargetV2', id);
                         renderHosts();
+                        renderHostSwitcher();
                         switchTab('ptt');
                     };
                 })(h.id);
                 
-                var html = '<div class="host-info">';
-                html += '<div class="host-name">' + h.name + '</div>';
-                html += '<div class="host-url">' + h.url + '</div>';
-                html += '</div>';
-                
-                var safeId = h.id || '';
-                html += '<button class="host-edit" style="position: absolute; right: 55px; top: 18px; background: transparent; border: none; font-size: 20px; color: #ff5555; cursor: pointer; display: none;" onclick="event.preventDefault(); event.stopPropagation(); editHostData(\''+safeId+'\')">✏️</button>';
-                html += '<button class="host-del" onclick="event.preventDefault(); event.stopPropagation(); deleteHost(' + i + ')">&#x1F5D1;</button>';
+                var html = '<a href="#" style="text-decoration:none;color:inherit;flex:1;min-width:0;padding:14px 16px;display:flex;align-items:center;gap:12px;" onclick="event.preventDefault()">';
+                html += '<div class="host-icon">' + (h.icon || '\u{1F5A5}') + '</div>';
+                html += '<div class="host-info"><div class="host-name">' + (h.name||'') + '</div>';
+                html += '<div class="host-url">' + (h.url||'') + '</div></div></a>';
                 
                 div.innerHTML = html;
+                
+                // Edit button (created via DOM to preserve onclick)
+                var editBtn = document.createElement('button');
+                editBtn.className = 'host-del';
+                editBtn.style.cssText = 'color:#bb86fc;display:' + (editing ? 'block' : 'none');
+                editBtn.textContent = '✏️';
+                editBtn.onclick = (function(id) { return function(e) { e.preventDefault(); e.stopPropagation(); editHostData(id); }; })(h.id);
+                div.appendChild(editBtn);
+                
+                // Delete button
+                var delBtn = document.createElement('button');
+                delBtn.className = 'host-del';
+                delBtn.innerHTML = '\u{1F5D1}';
+                delBtn.onclick = (function(idx) { return function(e) { e.preventDefault(); e.stopPropagation(); deleteHost(idx); }; })(i);
+                div.appendChild(delBtn);
+                
                 list.appendChild(div);
             }
-            if (editing) {
-                document.querySelectorAll('.host-del, .host-edit').forEach(function(el) {
-                    el.style.display = 'block';
-                });
-            }
+            if (needsSave) saveHosts();
+            renderHostSwitcher();
         }
 
 
@@ -785,14 +827,27 @@
         function addHost() {
             var n = document.getElementById('new-name').value.trim();
             var u = document.getElementById('new-url').value.trim();
+            var t = document.getElementById('new-token') ? document.getElementById('new-token').value.trim() : '';
             if (!n || !u) return alert('Name and URL required');
             if (!u.startsWith('http')) u = 'https://' + u;
-            hosts.push({ id: 'h_'+Date.now(), name: n, url: u });
+            if (editingHostId) {
+                var existing = hosts.find(function(x) { return x.id === editingHostId; });
+                if (existing) { existing.name = n; existing.url = u; if (t) existing.token = t; }
+                editingHostId = null;
+                var titleEl = document.querySelector('#add-section .section-title');
+                var btnEl = document.querySelector('#add-section .btn');
+                if (titleEl) titleEl.textContent = 'Add Host';
+                if (btnEl) btnEl.textContent = 'Add Host';
+            } else {
+                var newHost = { id: 'h_'+Date.now(), name: n, url: u, icon: '\u{1F5A5}' };
+                if (t) newHost.token = t;
+                hosts.push(newHost);
+            }
             saveHosts();
             document.getElementById('new-name').value = '';
             document.getElementById('new-url').value = '';
+            if (document.getElementById('new-token')) document.getElementById('new-token').value = '';
             renderHosts();
-            renderHostSwitcher();
         }
 
         function deleteHost(idx) {
@@ -846,6 +901,32 @@
         // Browsers load voices asynchronously
         if (window.speechSynthesis) {
             window.speechSynthesis.onvoiceschanged = populateVoices;
+        }
+
+
+        function renderHostSwitcher() {
+            var switcher = document.getElementById('host-switcher');
+            var targetLabel = document.getElementById('ptt-target-name');
+            if (!switcher) return;
+            switcher.innerHTML = '';
+            var activeHost = hosts.find(function(h) { return h.id === pttTarget; });
+            if (targetLabel) targetLabel.textContent = activeHost ? activeHost.name : '—';
+            if (!hosts.length) { switcher.innerHTML = '<div style="color:#555;font-size:13px;">No hosts added yet</div>'; return; }
+            for (var i = 0; i < hosts.length; i++) {
+                var h = hosts[i];
+                var btn = document.createElement('button');
+                btn.className = 'host-switch-btn' + (h.id === pttTarget ? ' active' : '');
+                btn.textContent = h.name || 'Host';
+                btn.onclick = (function(id) {
+                    return function() {
+                        pttTarget = id;
+                        localStorage.setItem('clawTargetV2', id);
+                        renderHostSwitcher();
+                        renderHosts();
+                    };
+                })(h.id);
+                switcher.appendChild(btn);
+            }
         }
 
         window.addEventListener('DOMContentLoaded', init);
