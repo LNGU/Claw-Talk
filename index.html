@@ -394,7 +394,12 @@
                             params: {
                                 minProtocol: 3,
                                 maxProtocol: 3,
-                                client: { id: "cli", version: "1.0.0", platform: "browser", mode: "cli" },
+                                client: { 
+                                    id: "cli", 
+                                    version: "1.0.0", 
+                                    platform: "browser", 
+                                    mode: "cli" 
+                                },
                                 auth: { token: token },
                                 role: "operator",
                                 scopes: ["operator.admin", "operator.write"]
@@ -427,7 +432,6 @@
                         log.innerHTML += '<div class="chat-bubble chat-user">' + text + '</div>';
                         log.scrollTop = log.scrollHeight;
                         
-                        // Safety timeout: If no reply in 20 seconds, reset the UI to prevent it from getting stuck!
                         window._replyTimeout = setTimeout(function() {
                             if (!window._replyProcessed) {
                                 window._replyProcessed = true;
@@ -437,10 +441,8 @@
                         }, 20000);
                         
                     } else if (msg.event === "agent" && msg.payload && msg.payload.stream === "assistant") {
-                        // We store the text in a variable so we can push the final string to the UI
                         window._activeAgentReply = msg.payload.data.text;
                     } else if (msg.event === "agent" && msg.payload && msg.payload.stream === "lifecycle" && msg.payload.data.phase === "end") {
-                        // Wait for the full 'chat' final event if possible, but fallback
                         if (window._activeAgentReply) {
                             finalizeReply(window._activeAgentReply);
                         }
@@ -460,7 +462,7 @@
                         }
                     }
                     
-                                        function finalizeReply(text) {
+                    function finalizeReply(replyText) {
                         if (window._replyProcessed) return;
                         window._replyProcessed = true;
                         if (window._replyTimeout) clearTimeout(window._replyTimeout);
@@ -468,13 +470,12 @@
                         pttStatusEl.textContent = 'Hold to talk';
                         
                         var log = document.getElementById('chat-history');
-                        log.innerHTML += '<div class="chat-bubble chat-bot">' + text + '</div>';
+                        log.innerHTML += '<div class="chat-bubble chat-bot">' + replyText + '</div>';
                         log.scrollTop = log.scrollHeight;
                         
                         try {
                             if (!window.speechSynthesis) { ws.close(); return; }
-                            var utterance = new SpeechSynthesisUtterance(text);
-                            // Safety timeout for speech ending
+                            var utterance = new SpeechSynthesisUtterance(replyText);
                             var speechTimeout = setTimeout(function() { ws.close(); }, 15000);
                             utterance.onend = function() {
                                 clearTimeout(speechTimeout);
@@ -486,26 +487,6 @@
                             };
                             window.speechSynthesis.speak(utterance);
                         } catch(e) {
-                            ws.close();
-                        }
-                    }
-                    } else if (msg.event === "chat" && msg.payload && msg.payload.state === "final" && !window.speechSynthesis.speaking) {
-                        // Fallback if lifecycle end was missed
-                        var content = msg.payload.message.content;
-                        var finalTxt = "";
-                        if (Array.isArray(content)) {
-                            for (var i=0; i<content.length; i++) {
-                                if (content[i].type === "text") finalTxt += content[i].text + " ";
-                            }
-                        } else {
-                            finalTxt = content;
-                        }
-                        
-                        if (finalTxt.trim().length > 0) {
-                            var utterance2 = new SpeechSynthesisUtterance(finalTxt);
-                            utterance2.onend = function() { sttOutput.textContent = ''; ws.close(); };
-                            window.speechSynthesis.speak(utterance2);
-                        } else {
                             ws.close();
                         }
                     }
