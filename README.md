@@ -40,7 +40,6 @@ We highly recommend using **Microsoft Azure's Free Tier (F0)** for Speech Servic
 ### 1. Host the UI
 Since it's a static file, you can host it easily:
 - **Locally:** `python3 -m http.server 8081`
-- **Cloud:** Drag and drop the folder into Vercel, Cloudflare Pages, or GitHub Pages.
 
 ### 2. Expose via Tailscale (For Mobile/Remote Access)
 To access the UI securely from your iPhone/Android:
