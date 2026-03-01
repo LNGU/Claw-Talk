@@ -544,7 +544,7 @@
             
             pttStatusEl.textContent = 'Sending to ' + target.name + '…';
             
-            var token = pttTarget.token;
+            var token = target.token;
             var uiToken = document.getElementById('api-token-ui');
             if (uiToken && uiToken.value) token = uiToken.value;
             // Clean up the target URL to ensure we don't double up /api/
