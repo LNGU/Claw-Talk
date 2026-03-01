@@ -237,6 +237,33 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+    
+        .ptt-button.processing {
+            background: #2a2a35;
+            border: 2px dashed rgba(255,255,255,0.5);
+            animation: spin-button 2s linear infinite;
+            transform: scale(0.95);
+        }
+        @keyframes spin-button {
+            100% { transform: scale(0.95) rotate(360deg); }
+        }
+        /* Actually, rotating the whole button rotates the microphone icon inside! */
+        /* Let's just add a spinning ring behind it using box-shadow or an absolute pseudo-element */
+        
+        .ptt-button.processing {
+            background: #2a2a35;
+        }
+        .ptt-button.processing::before {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #bb86fc;
+            border-right-color: #bb86fc;
+            animation: spin 1s linear infinite;
+        }
+
     </style>
 </head>
 <body>
@@ -385,7 +412,7 @@
             isRecording = true;
             pttBtn.classList.add('connecting');
             window._azureReady = false;
-            pttStatusEl.textContent = 'Connecting... (Wait)';
+            pttStatusEl.innerHTML = '<div class="spinner"></div> Getting ready...';
             sttOutput.textContent = 'Waking up microphone...';
             sttOutput.style.visibility = 'visible';
             
@@ -421,6 +448,7 @@
                 sttOutput.textContent = "Canceled: " + event.errorDetails;
                 isRecording = false;
                 pttBtn.classList.remove('recording');
+                pttBtn.classList.add('processing');
                 pttBtn.classList.remove('connecting');
             };
 
@@ -437,7 +465,7 @@
             if (isRecording && recognizer) {
                 isRecording = false;
                 pttBtn.classList.remove('recording');
-                pttStatusEl.innerHTML = '<div class="spinner"></div> Processing...';
+                pttStatusEl.textContent = 'Processing...';
                 
                 var finalGrabbed = false;
                 
@@ -452,8 +480,9 @@
                         sendTextToGateway(text);
                     } else {
                         sttOutput.textContent = 'No speech detected...';
-                        pttStatusEl.textContent = 'Hold to talk';
+                        pttStatusEl.textContent = 'Hold to talk'; pttBtn.classList.remove('processing'); pttBtn.classList.remove('processing'); pttBtn.classList.remove('processing');
                         pttBtn.classList.remove('waiting');
+                pttBtn.classList.remove('processing');
                     }
                 }, 2000);
                 
@@ -549,7 +578,7 @@
                         sttOutput.textContent = 'Sending payload...';
                     } else if (msg.id && msg.id.startsWith("chat-")) {
                         if (msg.error) throw new Error("Send: " + msg.error.message);
-                        pttStatusEl.innerHTML = '<div class="spinner"></div> Waiting...';
+                        pttStatusEl.innerHTML = 'Waiting for reply...';
                         pttBtn.classList.add('waiting');
                         sttOutput.style.visibility = 'hidden';
                         
