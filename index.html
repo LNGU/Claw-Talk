@@ -394,26 +394,29 @@
                 pttBtn.classList.remove('recording');
                 pttStatusEl.textContent = 'Processing...';
                 
-                // Immediately extract the text to avoid Azure SDK teardown hangs
-                var text = sttOutput.textContent.trim();
-                
-                // Safely ask Azure to stop, but don't wait for the callback to send the text
-                try {
-                    recognizer.stopContinuousRecognitionAsync();
-                    setTimeout(function() {
-                        if (recognizer) {
-                            try { recognizer.close(); } catch(e){}
-                            recognizer = null;
-                        }
-                    }, 500);
-                } catch(e) {}
-                
-                if (text && text.length > 0 && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
-                    sendTextToGateway(text);
-                } else {
-                    sttOutput.textContent = 'No speech detected...';
-                    pttStatusEl.textContent = 'Hold to talk';
-                }
+                // Add a small 400ms buffer to allow Azure to finalize the very last spoken word
+                setTimeout(function() {
+                    // Extract the text after the buffer
+                    var text = sttOutput.textContent.trim();
+                    
+                    // Safely ask Azure to stop, but don't wait for the callback to send the text
+                    try {
+                        if (recognizer) recognizer.stopContinuousRecognitionAsync();
+                        setTimeout(function() {
+                            if (recognizer) {
+                                try { recognizer.close(); } catch(err){}
+                                recognizer = null;
+                            }
+                        }, 500);
+                    } catch(err) {}
+                    
+                    if (text && text.length > 0 && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
+                        sendTextToGateway(text);
+                    } else {
+                        sttOutput.textContent = 'No speech detected...';
+                        pttStatusEl.textContent = 'Hold to talk';
+                    }
+                }, 400); // 400ms delay to catch trailing syllables
             }
         }
 
