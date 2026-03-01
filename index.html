@@ -231,6 +231,15 @@
             if (e) e.preventDefault();
             if (isRecording) return;
             
+            // Wake up iOS Safari's Speech engine silently to bypass async restrictions later
+            if (window.speechSynthesis && !window._speechWoken) {
+                var wake = new SpeechSynthesisUtterance('');
+                wake.volume = 0;
+                window.speechSynthesis.speak(wake);
+                window._speechWoken = true;
+            }
+
+            
             if (!window.SpeechSDK) {
                 sttOutput.textContent = "Error: Azure Speech SDK not loaded. Check internet connection.";
                 return;
@@ -241,7 +250,7 @@
             pttStatusEl.textContent = 'Listening via Azure...';
             sttOutput.textContent = '';
             
-            var key = "YOUR_AZURE_API_KEY_HERE";
+            var key = "5hQ12rQR3KDGCaxD2JD1lORCaIiJXFYveIFGXMwtFr17KVUGbNiWJQQJ99CBACYeBjFXJ3w3AAAYACOGPnJQ";
             var region = "eastus";
             
             var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, region);
@@ -364,14 +373,44 @@
                         sttOutput.textContent = 'Sending payload...';
                     } else if (msg.id && msg.id.startsWith("chat-")) {
                         if (msg.error) throw new Error("Send: " + msg.error.message);
+                        pttStatusEl.textContent = 'Waiting for reply...';
+                        sttOutput.textContent = 'Message sent! ✅ Waiting...';
+                        // Do NOT close ws here! Wait for agent reply!
+                    } else if (msg.event === "agent" && msg.payload && msg.payload.stream === "assistant") {
+                        sttOutput.textContent = msg.payload.data.text;
+                    } else if (msg.event === "agent" && msg.payload && msg.payload.stream === "lifecycle" && msg.payload.data.phase === "end") {
+                        // The agent finished talking!
                         pttStatusEl.textContent = 'Hold to talk';
-                        sttOutput.textContent = 'Message sent! ✅';
-                        setTimeout(function() {
-                            if (sttOutput.textContent.includes('Message sent!')) {
-                                sttOutput.textContent = '';
+                        
+                        var replyText = sttOutput.textContent;
+                        sttOutput.textContent = 'Speaking... 🗣️';
+                        
+                        // Speak the reply
+                        var utterance = new SpeechSynthesisUtterance(replyText);
+                        utterance.onend = function() {
+                            sttOutput.textContent = '';
+                            ws.close();
+                        };
+                        window.speechSynthesis.speak(utterance);
+                    } else if (msg.event === "chat" && msg.payload && msg.payload.state === "final" && !window.speechSynthesis.speaking) {
+                        // Fallback if lifecycle end was missed
+                        var content = msg.payload.message.content;
+                        var finalTxt = "";
+                        if (Array.isArray(content)) {
+                            for (var i=0; i<content.length; i++) {
+                                if (content[i].type === "text") finalTxt += content[i].text + " ";
                             }
-                        }, 1500);
-                        ws.close();
+                        } else {
+                            finalTxt = content;
+                        }
+                        
+                        if (finalTxt.trim().length > 0) {
+                            var utterance2 = new SpeechSynthesisUtterance(finalTxt);
+                            utterance2.onend = function() { sttOutput.textContent = ''; ws.close(); };
+                            window.speechSynthesis.speak(utterance2);
+                        } else {
+                            ws.close();
+                        }
                     }
                 } catch(err) {
                     console.error("WS Error:", err);
