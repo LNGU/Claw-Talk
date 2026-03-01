@@ -483,8 +483,8 @@
                         sttOutput.style.display = 'none';
                         
                         var log = document.getElementById('chat-history');
-                        log.innerHTML += '<div class="chat-bubble chat-user">' + text + '</div>';
-                        log.scrollTop = log.scrollHeight;
+                        log.insertAdjacentHTML('afterbegin', '<div class="chat-bubble chat-user">' + text + '</div>');
+                        log.scrollTop = 0;
                         
                         window._replyTimeout = setTimeout(function() {
                             if (!window._replyProcessed) {
@@ -524,8 +524,8 @@
                         pttStatusEl.textContent = 'Hold to talk';
                         
                         var log = document.getElementById('chat-history');
-                        log.innerHTML += '<div class="chat-bubble chat-bot">' + replyText + '</div>';
-                        log.scrollTop = log.scrollHeight;
+                        log.insertAdjacentHTML('afterbegin', '<div class="chat-bubble chat-bot">' + replyText + '</div>');
+                        log.scrollTop = 0;
                         
                         try {
                             if (!window.speechSynthesis) { ws.close(); return; }
