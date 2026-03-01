@@ -488,7 +488,7 @@
                     var text = sttOutput.textContent.trim();
                     try { if (recognizer) recognizer.close(); recognizer = null; } catch(err){}
                     
-                    if (text && text.length > 0 && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
+                    if (text && text.length > 0 && text !== "..." && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
                         sendTextToGateway(text);
                     } else {
                         sttOutput.textContent = '';
@@ -508,7 +508,7 @@
                         var text = sttOutput.textContent.trim();
                         try { if (recognizer) recognizer.close(); recognizer = null; } catch(err){}
                         
-                        if (text && text.length > 0 && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
+                        if (text && text.length > 0 && text !== "..." && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
                             sendTextToGateway(text);
                         } else {
                             sttOutput.textContent = 'No speech detected...';
