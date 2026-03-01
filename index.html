@@ -413,8 +413,7 @@
             
             var key = localStorage.getItem('claw_azure_key');
             if (!key || key.trim() === '') {
-                sttOutput.textContent = 'Error: Please set your Azure Key in the Settings tab!';
-                pttStatusEl.innerHTML = '&nbsp;';
+                sttOutput.textContent = 'Error: Please set your Azure Key in the Settings tab!'; alert('Missing Azure Speech Key! Please paste it into the Settings tab to continue.'); pttStatusEl.innerHTML = '<span style="color:#ff4444;">Missing Azure Key!</span>';
                 pttBtn.classList.remove('spinning');
                 isRecording = false;
                 return;
