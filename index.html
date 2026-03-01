@@ -270,12 +270,12 @@
                                 <div class="tab-panel" id="panel-settings">
                     <div class="settings-group">
                         <label>Gateway Token</label>
-                        <input type="password" id="api-token-ui" placeholder="Paste your openclaw token..." autocomplete="off" onclick="copyToken('api-token-ui', 'token-copy-msg')">
+                        <input type="password" id="api-token-ui" placeholder="Paste your openclaw token..." autocomplete="off" oninput="saveKeys()" onclick="copyToken('api-token-ui', 'token-copy-msg')">
                         <p id="token-copy-msg" style="font-size:11px; color:#bb86fc; margin-top:5px; display:none;">Copied to clipboard!</p>
                     </div>
                     <div class="settings-group">
                         <label>Azure Speech Key</label>
-                        <input type="password" id="azure-key-ui" placeholder="Paste your Azure API key..." autocomplete="off" onclick="copyToken('azure-key-ui', 'azure-copy-msg')">
+                        <input type="password" id="azure-key-ui" placeholder="Paste your Azure API key..." autocomplete="off" oninput="saveKeys()" onclick="copyToken('azure-key-ui', 'azure-copy-msg')">
                         <p id="azure-copy-msg" style="font-size:11px; color:#bb86fc; margin-top:5px; display:none;">Copied to clipboard!</p>
                     </div>
                     <div class="settings-group">
@@ -679,6 +679,14 @@
 
         // --- UI TABS AND HOSTS ---
         
+        
+        function saveKeys() {
+            var token = document.getElementById('api-token-ui').value;
+            var azure = document.getElementById('azure-key-ui').value;
+            if(token) localStorage.setItem('claw_token', token);
+            if(azure) localStorage.setItem('claw_azure_key', azure);
+        }
+
         function copyToken(inputId, msgId) {
             var val = document.getElementById(inputId).value;
             if (val) {
