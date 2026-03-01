@@ -697,7 +697,7 @@
             ws.onerror = function(err) {
                 pttBtn.classList.remove('spinning');
                 console.error("WebSocket network error", err);
-                sttOutput.textContent = "WS Network/CORS Error to " + wsUrl.split('?')[0];
+                sttOutput.textContent = "WS Network/CORS Error - " + wsUrl.split('?')[0];
                 pttStatusEl.textContent = 'Hold to talk'; pttBtn.classList.remove('spinning');
             };
         }
