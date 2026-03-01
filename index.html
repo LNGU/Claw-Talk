@@ -267,7 +267,27 @@
                 </div>
             </div>
         </div>
-                <div class="tab-panel active" id="panel-ptt" style="height: 100%; display: flex; flex-direction: column;">
+                                <div class="tab-panel" id="panel-settings">
+                    <div class="settings-group">
+                        <label>Gateway Token</label>
+                        <input type="password" id="api-token-ui" placeholder="Paste your openclaw token..." autocomplete="off" onclick="copyToken('api-token-ui', 'token-copy-msg')">
+                        <p id="token-copy-msg" style="font-size:11px; color:#bb86fc; margin-top:5px; display:none;">Copied to clipboard!</p>
+                    </div>
+                    <div class="settings-group">
+                        <label>Azure Speech Key</label>
+                        <input type="password" id="azure-key-ui" placeholder="Paste your Azure API key..." autocomplete="off" onclick="copyToken('azure-key-ui', 'azure-copy-msg')">
+                        <p id="azure-copy-msg" style="font-size:11px; color:#bb86fc; margin-top:5px; display:none;">Copied to clipboard!</p>
+                    </div>
+                    <div class="settings-group">
+                        <label>TTS Speed: <span id="speed-val">1.1</span>x</label>
+                        <input type="range" id="tts-speed" min="0.5" max="2" step="0.1" value="1.1">
+                    </div>
+                    <div class="settings-group">
+                        <label>TTS Voice</label>
+                        <select id="tts-voice"></select>
+                    </div>
+                </div>
+<div class="tab-panel active" id="panel-ptt" style="height: 100%; display: flex; flex-direction: column;">
             <div class="ptt-container" style="flex-grow: 1; display: flex; flex-direction: column; height: 100%;">
                 <div class="ptt-target" style="flex-shrink: 0;">Target: <strong id="ptt-target-name">&mdash;</strong></div>
                 <div class="host-switcher" id="host-switcher" style="flex-shrink: 0;"></div>
