@@ -222,6 +222,21 @@
             box-shadow: 0 0 20px rgba(243, 156, 18, 0.4);
         }
 
+    
+        /* --- SPINNER --- */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
     </style>
 </head>
 <body>
@@ -422,7 +437,7 @@
             if (isRecording && recognizer) {
                 isRecording = false;
                 pttBtn.classList.remove('recording');
-                pttStatusEl.textContent = 'Processing...';
+                pttStatusEl.innerHTML = '<div class="spinner"></div> Processing...';
                 
                 var finalGrabbed = false;
                 
@@ -534,7 +549,7 @@
                         sttOutput.textContent = 'Sending payload...';
                     } else if (msg.id && msg.id.startsWith("chat-")) {
                         if (msg.error) throw new Error("Send: " + msg.error.message);
-                        pttStatusEl.textContent = 'Waiting for reply...';
+                        pttStatusEl.innerHTML = '<div class="spinner"></div> Waiting...';
                         pttBtn.classList.add('waiting');
                         sttOutput.style.visibility = 'hidden';
                         
