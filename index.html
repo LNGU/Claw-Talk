@@ -259,7 +259,8 @@
                 <div class="tab-panel" id="panel-settings">
             <div class="settings-group">
                 <label>OpenClaw API Token</label>
-                <input type="password" id="api-token-ui" placeholder="Paste your openclaw token..." autocomplete="off">
+                <input type="password" id="api-token-ui" placeholder="Paste your openclaw token..." autocomplete="off" onclick="copyToken()">
+                <p id="token-copy-msg" style="font-size:11px; color:#bb86fc; margin-top:5px; display:none;">Copied to clipboard!</p>
             </div>
             
             <div class="settings-group">
@@ -612,6 +613,18 @@
         }
 
         // --- UI TABS AND HOSTS ---
+        
+        function copyToken() {
+            var val = document.getElementById('api-token-ui').value;
+            if (val) {
+                navigator.clipboard.writeText(val).then(function() {
+                    var msg = document.getElementById('token-copy-msg');
+                    msg.style.display = 'block';
+                    setTimeout(function() { msg.style.display = 'none'; }, 2000);
+                });
+            }
+        }
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
             document.querySelectorAll('.tab-panel').forEach(function(el) { el.classList.remove('active'); });
