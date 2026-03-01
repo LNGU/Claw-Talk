@@ -204,35 +204,10 @@
         }
 
     
-        .ptt-button.waiting {
-            background: #2a2a35;
-        }
-        .ptt-button.waiting::before {
-            content: '';
-            position: absolute;
-            top: -4px; left: -4px; right: -4px; bottom: -4px;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            border-top-color: #bb86fc;
-            border-right-color: #bb86fc;
-            animation: spin 1s linear infinite;
-        }
+        
 
     
-        .ptt-button.connecting {
-            background: #2a2a35;
-            transform: scale(0.95);
-        }
-        .ptt-button.connecting::before {
-            content: '';
-            position: absolute;
-            top: -4px; left: -4px; right: -4px; bottom: -4px;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            border-top-color: #bb86fc;
-            border-right-color: #bb86fc;
-            animation: spin 1s linear infinite;
-        }
+        
 
     
         /* --- SPINNER --- */
@@ -250,22 +225,13 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
     
-        .ptt-button.processing {
-            background: #2a2a35;
-            border: 2px dashed rgba(255,255,255,0.5);
-            animation: spin-button 2s linear infinite;
-            transform: scale(0.95);
-        }
-        @keyframes spin-button {
-            100% { transform: scale(0.95) rotate(360deg); }
-        }
-        /* Actually, rotating the whole button rotates the microphone icon inside! */
-        /* Let's just add a spinning ring behind it using box-shadow or an absolute pseudo-element */
         
-        .ptt-button.processing {
+
+    
+        .ptt-button.spinning {
             background: #2a2a35;
         }
-        .ptt-button.processing::before {
+        .ptt-button.spinning::before {
             content: '';
             position: absolute;
             top: -4px; left: -4px; right: -4px; bottom: -4px;
@@ -422,7 +388,7 @@
             }
 
             isRecording = true;
-            pttBtn.classList.add('connecting');
+            pttBtn.classList.add('spinning');
             window._azureReady = false;
             pttStatusEl.innerHTML = '&nbsp;';
             sttOutput.textContent = '...';
@@ -439,7 +405,7 @@
             
             recognizer.sessionStarted = function(s, event) {
                 window._azureReady = true;
-                pttBtn.classList.remove('connecting');
+                pttBtn.classList.remove('spinning');
                 pttBtn.classList.add('recording');
                 pttStatusEl.textContent = 'Speak Now!';
                 sttOutput.textContent = ''; // Clear the waking up text
@@ -460,8 +426,8 @@
                 sttOutput.textContent = "Canceled: " + event.errorDetails;
                 isRecording = false;
                 pttBtn.classList.remove('recording');
-                pttBtn.classList.add('processing');
-                pttBtn.classList.remove('connecting');
+                pttBtn.classList.add('spinning');
+                pttBtn.classList.remove('spinning');
             };
 
             recognizer.sessionStopped = function(s, event) {
@@ -492,9 +458,8 @@
                         sendTextToGateway(text);
                     } else {
                         sttOutput.textContent = '';
-                        pttStatusEl.textContent = 'Hold to talk'; pttBtn.classList.remove('processing'); pttBtn.classList.remove('processing'); pttBtn.classList.remove('processing');
-                        pttBtn.classList.remove('waiting');
-                pttBtn.classList.remove('processing');
+                        pttStatusEl.textContent = 'Hold to talk'; pttBtn.classList.remove('spinning');
+                pttBtn.classList.remove('spinning');
                     }
                 }, 2000);
                 
@@ -591,7 +556,7 @@
                     } else if (msg.id && msg.id.startsWith("chat-")) {
                         if (msg.error) throw new Error("Send: " + msg.error.message);
                         pttStatusEl.innerHTML = '&nbsp;';
-                        pttBtn.classList.add('waiting');
+                        pttBtn.classList.add('spinning');
                         sttOutput.style.visibility = 'hidden';
                         
                         var log = document.getElementById('chat-history');
@@ -602,7 +567,7 @@
                             if (!window._replyProcessed) {
                                 window._replyProcessed = true;
                                 pttStatusEl.textContent = 'Hold to talk';
-                                pttBtn.classList.remove('waiting');
+                                pttBtn.classList.remove('spinning');
                                 ws.close();
                             }
                         }, 20000);
@@ -672,13 +637,13 @@
                     }
                 } catch(err) {
                     console.error("WS Error:", err);
-                    pttBtn.classList.remove('waiting');
+                    pttBtn.classList.remove('spinning');
                     sttOutput.textContent = "Error: " + err.message;
                     ws.close();
                 }
             };
             ws.onerror = function(err) {
-                pttBtn.classList.remove('waiting');
+                pttBtn.classList.remove('spinning');
                 console.error("WebSocket network error", err);
                 sttOutput.textContent = "WS Network/CORS Error to " + wsUrl.split('?')[0];
                 pttStatusEl.textContent = 'Hold to talk';
