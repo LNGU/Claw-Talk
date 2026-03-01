@@ -425,7 +425,7 @@
             pttBtn.classList.add('connecting');
             window._azureReady = false;
             pttStatusEl.innerHTML = '&nbsp;';
-            sttOutput.textContent = 'Waking up microphone...';
+            sttOutput.textContent = '...';
             sttOutput.style.visibility = 'visible';
             
             var key = "5hQ12rQR3KDGCaxD2JD1lORCaIiJXFYveIFGXMwtFr17KVUGbNiWJQQJ99CBACYeBjFXJ3w3AAAYACOGPnJQ";
@@ -491,7 +491,7 @@
                     if (text && text.length > 0 && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
                         sendTextToGateway(text);
                     } else {
-                        sttOutput.textContent = 'No speech detected...';
+                        sttOutput.textContent = '';
                         pttStatusEl.textContent = 'Hold to talk'; pttBtn.classList.remove('processing'); pttBtn.classList.remove('processing'); pttBtn.classList.remove('processing');
                         pttBtn.classList.remove('waiting');
                 pttBtn.classList.remove('processing');
