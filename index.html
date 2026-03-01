@@ -215,6 +215,13 @@
             100% { box-shadow: 0 0 0 0 rgba(187, 134, 252, 0); }
         }
 
+    
+        .ptt-button.connecting {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            transform: scale(0.95);
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.4);
+        }
+
     </style>
 </head>
 <body>
@@ -361,9 +368,10 @@
             }
 
             isRecording = true;
-            pttBtn.classList.add('recording');
-            pttStatusEl.textContent = 'Listening via Azure...';
-            sttOutput.textContent = '';
+            pttBtn.classList.add('connecting');
+            window._azureReady = false;
+            pttStatusEl.textContent = 'Connecting... (Wait)';
+            sttOutput.textContent = 'Waking up microphone...';
             sttOutput.style.visibility = 'visible';
             
             var key = "5hQ12rQR3KDGCaxD2JD1lORCaIiJXFYveIFGXMwtFr17KVUGbNiWJQQJ99CBACYeBjFXJ3w3AAAYACOGPnJQ";
@@ -374,6 +382,14 @@
             var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
             
             recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+            
+            recognizer.sessionStarted = function(s, event) {
+                window._azureReady = true;
+                pttBtn.classList.remove('connecting');
+                pttBtn.classList.add('recording');
+                pttStatusEl.textContent = 'Speak Now!';
+                sttOutput.textContent = ''; // Clear the waking up text
+            };
             
             recognizer.recognizing = function(s, event) {
                 sttOutput.textContent = event.result.text;
@@ -390,6 +406,7 @@
                 sttOutput.textContent = "Canceled: " + event.errorDetails;
                 isRecording = false;
                 pttBtn.classList.remove('recording');
+                pttBtn.classList.remove('connecting');
             };
 
             recognizer.sessionStopped = function(s, event) {
