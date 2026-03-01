@@ -205,21 +205,33 @@
 
     
         .ptt-button.waiting {
-            background: linear-gradient(135deg, #4b3e8c 0%, #302661 100%);
-            box-shadow: 0 0 0 0 rgba(187, 134, 252, 0.4);
-            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            background: #2a2a35;
         }
-        @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(187, 134, 252, 0.6); }
-            70% { box-shadow: 0 0 0 20px rgba(187, 134, 252, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(187, 134, 252, 0); }
+        .ptt-button.waiting::before {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #bb86fc;
+            border-right-color: #bb86fc;
+            animation: spin 1s linear infinite;
         }
 
     
         .ptt-button.connecting {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            background: #2a2a35;
             transform: scale(0.95);
-            box-shadow: 0 0 20px rgba(243, 156, 18, 0.4);
+        }
+        .ptt-button.connecting::before {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #bb86fc;
+            border-right-color: #bb86fc;
+            animation: spin 1s linear infinite;
         }
 
     
