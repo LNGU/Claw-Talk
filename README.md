@@ -1,8 +1,8 @@
 # Claw-Talk
 
-A lightning-fast, mobile-friendly Push-To-Talk (PTT) web interface for [OpenClaw](https://github.com/openclaw/openclaw). It allows you to seamlessly beam voice commands to multiple OpenClaw Gateways (like your desktop, server, or raspberry pi) straight from your phone's browser.
+A lightning-fast, mobile-friendly Push-To-Talk (PTT) web interface for [OpenClaw](https://github.com/openclaw/openclaw). It allows you to seamlessly beam voice commands to multiple OpenClaw Gateways (like your desktop, server, or raspberry pi) straight from your a browser including iOS from a singel html page.
 
-## 🚀 Why This App? (Differentiators)
+## 🚀 Why This App?
 
 - **Mobile-First & Extension-Free:** Other solutions are built as heavy desktop Chrome Extensions. This is a pure web app that works flawlessly in iOS Safari and mobile browsers.
 - **Zero Backend Required:** No need to stand up complex FastAPI or Node.js proxy servers. This app is 100% static HTML/JS—it connects directly to Azure and directly to your Gateway WebSocket. Host it anywhere (even GitHub Pages) for free!
@@ -62,7 +62,7 @@ You can now open your Tailscale URL (e.g., `https://your-machine.tailnet.ts.net/
 2. Enter your **OpenClaw API Token** (find this by running `openclaw token list` on your server).
 3. Go to the **Hosts** tab and add your Gateway URL (e.g., `https://your-machine.tailnet.ts.net/api/`).
    *Note: If you have multiple OpenClaw instances, you can sync them to use the same token by running `openclaw token create --token <YOUR_TOKEN>` on your other machines.*
-4. Select your target host, press and hold the microphone button, and speak!
+4. Select your target openclaw, press and hold the microphone button (allow microphone only for the first use), wait for it to tun red, then speak!
 
 ## 🔐 Security
 Your API tokens and configuration are stored exclusively in your browser's local `localStorage`. The app communicates directly with Azure and your OpenClaw Gateway; there is no middleman server.
