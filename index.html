@@ -387,24 +387,39 @@
             recognizer.startContinuousRecognitionAsync();
         }
 
-                function stopRecording(e) {
+                        function stopRecording(e) {
             if (e) e.preventDefault();
-            if (isRecording) {
+            if (isRecording && recognizer) {
                 isRecording = false;
                 pttBtn.classList.remove('recording');
                 pttStatusEl.textContent = 'Processing...';
                 
-                setTimeout(function() {
-                    try {
-                        var text = sttOutput.textContent.trim();
+                var finalGrabbed = false;
+                
+                // Set a 2-second timeout. If Azure takes too long to flush the final word, force send it.
+                var fallbackTimer = setTimeout(function() {
+                    if (finalGrabbed) return;
+                    finalGrabbed = true;
+                    var text = sttOutput.textContent.trim();
+                    try { if (recognizer) recognizer.close(); recognizer = null; } catch(err){}
+                    
+                    if (text && text.length > 0 && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
+                        sendTextToGateway(text);
+                    } else {
+                        sttOutput.textContent = 'No speech detected...';
+                        pttStatusEl.textContent = 'Hold to talk';
+                    }
+                }, 2000);
+                
+                // Ask Azure to gracefully flush the audio buffer and return the final word
+                try {
+                    recognizer.stopContinuousRecognitionAsync(function() {
+                        if (finalGrabbed) return;
+                        finalGrabbed = true;
+                        clearTimeout(fallbackTimer);
                         
-                        if (recognizer) {
-                            try { recognizer.stopContinuousRecognitionAsync(); } catch(err) {}
-                            setTimeout(function() {
-                                try { if (recognizer) recognizer.close(); } catch(err){}
-                                recognizer = null;
-                            }, 300);
-                        }
+                        var text = sttOutput.textContent.trim();
+                        try { if (recognizer) recognizer.close(); recognizer = null; } catch(err){}
                         
                         if (text && text.length > 0 && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
                             sendTextToGateway(text);
@@ -412,11 +427,12 @@
                             sttOutput.textContent = 'No speech detected...';
                             pttStatusEl.textContent = 'Hold to talk';
                         }
-                    } catch (fatal) {
-                        console.error(fatal);
-                        pttStatusEl.textContent = 'Hold to talk';
-                    }
-                }, 800);
+                    }, function(err) {
+                        console.error(err);
+                    });
+                } catch(e) {
+                    console.error(e);
+                }
             }
         }
 
