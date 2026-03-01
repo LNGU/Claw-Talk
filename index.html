@@ -328,6 +328,11 @@
             if (e) e.preventDefault();
             if (isRecording) return;
             
+            // Interrupt any currently playing text-to-speech if the user starts talking over the bot
+            if (window.speechSynthesis && window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+            
             // Wake up iOS Safari's Speech engine silently to bypass async restrictions later
             if (window.speechSynthesis && !window._speechWoken) {
                 var wake = new SpeechSynthesisUtterance('');
