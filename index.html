@@ -268,11 +268,7 @@
             </div>
         </div>
                                 <div class="tab-panel" id="panel-settings">
-                    <div class="settings-group">
-                        <label>Gateway Token</label>
-                        <input type="password" id="api-token-ui" placeholder="Paste your openclaw token..." autocomplete="off" oninput="saveKeys()" onclick="copyToken('api-token-ui', 'token-copy-msg')">
-                        <p id="token-copy-msg" style="font-size:11px; color:#bb86fc; margin-top:5px; display:none;">Copied to clipboard!</p>
-                    </div>
+                    
                     <div class="settings-group">
                         <label>Azure Speech Key</label>
                         <input type="password" id="azure-key-ui" placeholder="Paste your Azure API key..." autocomplete="off" oninput="saveKeys()" onclick="copyToken('azure-key-ui', 'azure-copy-msg')">
@@ -341,11 +337,7 @@
 
         // -- UI Initialization --
         window.addEventListener('DOMContentLoaded', function() {
-            var savedToken = localStorage.getItem('claw_token');
-            if (savedToken) {
-                var tkUi = document.getElementById('api-token-ui');
-                if(tkUi) tkUi.value = savedToken;
-            }
+            
             
             var savedAzure = localStorage.getItem('claw_azure_key');
             if (savedAzure) {
@@ -551,7 +543,7 @@
             
             pttStatusEl.textContent = 'Sending to ' + target.name + '…';
             
-            var token = document.getElementById('api-token') ? document.getElementById('api-token').value : '';
+            var token = pttTarget.token;
             var uiToken = document.getElementById('api-token-ui');
             if (uiToken && uiToken.value) token = uiToken.value;
             // Clean up the target URL to ensure we don't double up /api/
