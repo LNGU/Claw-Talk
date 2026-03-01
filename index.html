@@ -477,7 +477,7 @@
                             sendTextToGateway(text);
                         } else {
                             sttOutput.textContent = 'No speech detected...';
-                            pttStatusEl.textContent = 'Hold to talk';
+                            pttStatusEl.textContent = 'Hold to talk'; pttBtn.classList.remove('spinning');
                         }
                     }, function(err) {
                         console.error(err);
@@ -566,8 +566,7 @@
                         window._replyTimeout = setTimeout(function() {
                             if (!window._replyProcessed) {
                                 window._replyProcessed = true;
-                                pttStatusEl.textContent = 'Hold to talk';
-                                pttBtn.classList.remove('spinning');
+                                pttStatusEl.textContent = 'Hold to talk'; pttBtn.classList.remove('spinning');
                                 ws.close();
                             }
                         }, 20000);
@@ -599,7 +598,7 @@
                         window._replyProcessed = true;
                         if (window._replyTimeout) clearTimeout(window._replyTimeout);
                         
-                        pttStatusEl.textContent = 'Hold to talk';
+                        pttStatusEl.textContent = 'Hold to talk'; pttBtn.classList.remove('spinning');
                         
                         var log = document.getElementById('chat-history');
                         log.insertAdjacentHTML('afterbegin', '<div class="chat-bubble chat-bot">' + replyText + '</div>');
@@ -646,7 +645,7 @@
                 pttBtn.classList.remove('spinning');
                 console.error("WebSocket network error", err);
                 sttOutput.textContent = "WS Network/CORS Error to " + wsUrl.split('?')[0];
-                pttStatusEl.textContent = 'Hold to talk';
+                pttStatusEl.textContent = 'Hold to talk'; pttBtn.classList.remove('spinning');
             };
         }
 
