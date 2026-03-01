@@ -193,6 +193,16 @@
         .panel { display: none; flex-direction: column; flex-grow: 1; }
         .panel.active { display: flex; }
     
+    
+        .settings-select {
+            width: 100%; padding: 12px; border-radius: 8px;
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; font-size: 14px; outline: none; appearance: none;
+        }
+        input[type="range"] {
+            width: 100%; accent-color: #bb86fc;
+        }
+
     </style>
 </head>
 <body>
@@ -234,7 +244,25 @@
                 </div>
             </div>
         </div>
-        <div class="tab-panel" id="panel-settings">
+                <div class="tab-panel" id="panel-settings">
+            <div class="settings-group">
+                <label>OpenClaw API Token</label>
+                <input type="text" id="api-token" placeholder="Paste your openclaw token..." autocomplete="off">
+            </div>
+            
+            <div class="settings-group">
+                <label>Text-to-Speech Voice</label>
+                <select id="tts-voice" class="settings-select">
+                    <option value="">Default System Voice</option>
+                </select>
+                <p style="font-size:11px; color:#888; margin-top:5px;">Voices are provided by your phone's OS.</p>
+            </div>
+            
+            <div class="settings-group">
+                <label>Speech Speed (<span id="speed-val">1.0</span>x)</label>
+                <input type="range" id="tts-speed" min="0.5" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('speed-val').textContent = this.value">
+            </div>
+
             <div class="settings-group">
                 
                 <input type="hidden" id="api-token" value="173f9ac5d6a970d1fd578aea57ed895f0e5cc8be994e548f">
@@ -269,6 +297,18 @@
             
             renderHosts();
             renderHostSwitcher();
+
+            try { var spd = localStorage.getItem('clawVoiceSpeed'); if (spd) { document.getElementById('tts-speed').value = spd; document.getElementById('speed-val').textContent = spd; } } catch(e){}
+            
+            document.getElementById('tts-voice').addEventListener('change', function(e) {
+                localStorage.setItem('clawVoiceURI', e.target.value);
+            });
+            document.getElementById('tts-speed').addEventListener('change', function(e) {
+                localStorage.setItem('clawVoiceSpeed', e.target.value);
+            });
+            
+            populateVoices();
+
 
             if (pttBtn) {
                 pttBtn.addEventListener('touchstart', startRecording, {passive: false});
@@ -482,7 +522,20 @@
                         
                         try {
                             if (!window.speechSynthesis) { ws.close(); return; }
+                            
                             var utterance = new SpeechSynthesisUtterance(replyText);
+                            
+                            // Apply custom speed
+                            var customSpeed = document.getElementById('tts-speed').value;
+                            if (customSpeed) utterance.rate = parseFloat(customSpeed);
+                            
+                            // Apply custom voice
+                            var customVoiceURI = document.getElementById('tts-voice').value;
+                            if (customVoiceURI && ttsVoices.length > 0) {
+                                var selectedVoice = ttsVoices.find(function(v) { return v.voiceURI === customVoiceURI; });
+                                if (selectedVoice) utterance.voice = selectedVoice;
+                            }
+
                             var speechTimeout = setTimeout(function() { ws.close(); }, 15000);
                             utterance.onend = function() {
                                 clearTimeout(speechTimeout);
@@ -619,6 +672,36 @@
             localStorage.setItem('clawTheme', t);
         }
         
+        
+        var ttsVoices = [];
+        function populateVoices() {
+            if (!window.speechSynthesis) return;
+            ttsVoices = window.speechSynthesis.getVoices();
+            var select = document.getElementById('tts-voice');
+            
+            // Save current selection before wiping
+            var currentVal = select.value;
+            if (!currentVal) currentVal = localStorage.getItem('clawVoiceURI');
+            
+            select.innerHTML = '<option value="">Default System Voice</option>';
+            
+            for (var i=0; i<ttsVoices.length; i++) {
+                // Filter to primarily English voices to reduce clutter, but allow others
+                if (ttsVoices[i].lang.startsWith('en')) {
+                    var opt = document.createElement('option');
+                    opt.value = ttsVoices[i].voiceURI;
+                    opt.textContent = ttsVoices[i].name + " (" + ttsVoices[i].lang + ")";
+                    select.appendChild(opt);
+                }
+            }
+            if (currentVal) select.value = currentVal;
+        }
+        
+        // Browsers load voices asynchronously
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = populateVoices;
+        }
+
         window.addEventListener('DOMContentLoaded', init);
 
 </script>
