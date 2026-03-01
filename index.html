@@ -555,7 +555,7 @@
                         sttOutput.textContent = 'Sending payload...';
                     } else if (msg.id && msg.id.startsWith("chat-")) {
                         if (msg.error) throw new Error("Send: " + msg.error.message);
-                        pttStatusEl.innerHTML = 'Processing...';
+                        pttStatusEl.innerHTML = 'Waiting for reply...';
                         pttBtn.classList.add('spinning');
                         sttOutput.style.visibility = 'hidden';
                         
