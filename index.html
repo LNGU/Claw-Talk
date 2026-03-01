@@ -339,6 +339,35 @@
     <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@latest/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
     <script>
 
+        // -- UI Initialization --
+        window.addEventListener('DOMContentLoaded', function() {
+            var savedToken = localStorage.getItem('claw_token');
+            if (savedToken) {
+                var tkUi = document.getElementById('api-token-ui');
+                if(tkUi) tkUi.value = savedToken;
+            }
+            
+            var savedAzure = localStorage.getItem('claw_azure_key');
+            if (savedAzure) {
+                var azUi = document.getElementById('azure-key-ui');
+                if(azUi) azUi.value = savedAzure;
+            }
+            
+            var savedSpeed = localStorage.getItem('claw_tts_speed');
+            var speedUi = document.getElementById('tts-speed');
+            var speedValUi = document.getElementById('speed-val');
+            
+            if (savedSpeed && speedUi && speedValUi) {
+                speedUi.value = savedSpeed;
+                speedValUi.textContent = savedSpeed;
+            } else if (speedUi && speedValUi) {
+                speedUi.value = '1.1';
+                speedValUi.textContent = '1.1';
+                localStorage.setItem('claw_tts_speed', '1.1');
+            }
+        });
+
+
         var editing = false;
         var hosts = [];
         var pttTarget = null;
@@ -841,4 +870,3 @@
 </script>
 </body>
 </html>
-<!-- Speed Slider Fix -->
