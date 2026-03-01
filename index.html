@@ -390,11 +390,20 @@
             isRecording = true;
             pttBtn.classList.add('spinning');
             window._azureReady = false;
+            
+            var key = localStorage.getItem('claw_azure_key');
+            if (!key || key.trim() === '') {
+                sttOutput.textContent = 'Error: Please set your Azure Key in the Settings tab!';
+                pttStatusEl.innerHTML = '&nbsp;';
+                pttBtn.classList.remove('spinning');
+                isRecording = false;
+                return;
+            }
             pttStatusEl.innerHTML = 'Getting ready...';
             sttOutput.textContent = 'Activating...';
             sttOutput.style.visibility = 'visible';
             
-            var key = "5hQ12rQR3KDGCaxD2JD1lORCaIiJXFYveIFGXMwtFr17KVUGbNiWJQQJ99CBACYeBjFXJ3w3AAAYACOGPnJQ";
+            var key = localStorage.getItem('claw_azure_key');
             var region = "eastus";
             
             var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, region);
@@ -651,11 +660,11 @@
 
         // --- UI TABS AND HOSTS ---
         
-        function copyToken() {
-            var val = document.getElementById('api-token-ui').value;
+        function copyToken(inputId, msgId) {
+            var val = document.getElementById(inputId).value;
             if (val) {
                 navigator.clipboard.writeText(val).then(function() {
-                    var msg = document.getElementById('token-copy-msg');
+                    var msg = document.getElementById(msgId);
                     msg.style.display = 'block';
                     setTimeout(function() { msg.style.display = 'none'; }, 2000);
                 });
