@@ -203,6 +203,18 @@
             width: 100%; accent-color: #bb86fc;
         }
 
+    
+        .ptt-button.waiting {
+            background: linear-gradient(135deg, #4b3e8c 0%, #302661 100%);
+            box-shadow: 0 0 0 0 rgba(187, 134, 252, 0.4);
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(187, 134, 252, 0.6); }
+            70% { box-shadow: 0 0 0 20px rgba(187, 134, 252, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(187, 134, 252, 0); }
+        }
+
     </style>
 </head>
 <body>
@@ -408,6 +420,7 @@
                     } else {
                         sttOutput.textContent = 'No speech detected...';
                         pttStatusEl.textContent = 'Hold to talk';
+                        pttBtn.classList.remove('waiting');
                     }
                 }, 2000);
                 
@@ -504,6 +517,7 @@
                     } else if (msg.id && msg.id.startsWith("chat-")) {
                         if (msg.error) throw new Error("Send: " + msg.error.message);
                         pttStatusEl.textContent = 'Waiting for reply...';
+                        pttBtn.classList.add('waiting');
                         sttOutput.style.visibility = 'hidden';
                         
                         var log = document.getElementById('chat-history');
@@ -514,6 +528,7 @@
                             if (!window._replyProcessed) {
                                 window._replyProcessed = true;
                                 pttStatusEl.textContent = 'Hold to talk';
+                                pttBtn.classList.remove('waiting');
                                 ws.close();
                             }
                         }, 20000);
@@ -583,11 +598,13 @@
                     }
                 } catch(err) {
                     console.error("WS Error:", err);
+                    pttBtn.classList.remove('waiting');
                     sttOutput.textContent = "Error: " + err.message;
                     ws.close();
                 }
             };
             ws.onerror = function(err) {
+                pttBtn.classList.remove('waiting');
                 console.error("WebSocket network error", err);
                 sttOutput.textContent = "WS Network/CORS Error to " + wsUrl.split('?')[0];
                 pttStatusEl.textContent = 'Hold to talk';
