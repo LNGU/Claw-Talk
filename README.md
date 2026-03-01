@@ -62,3 +62,9 @@ You can now open your Tailscale URL (e.g., `https://your-machine.tailnet.ts.net/
 
 ## 🔐 Security
 Your API tokens and configuration are stored exclusively in your browser's local `localStorage`. The app communicates directly with Azure and your OpenClaw Gateway; there is no middleman server.
+
+
+## Troubleshooting
+
+**Q: The AI replies to me on Telegram/Discord instead of the web UI!**
+A: If your OpenClaw agent has messaging tools configured (like Telegram), it might try to "help" by sending its response there instead of down the WebSocket. Just tell your AI: *"Reply normally to test the web UI"* or *"Do not use your message tools to reply."* Once it replies natively, the text will stream back into Claw-Talk and the TTS will play.
