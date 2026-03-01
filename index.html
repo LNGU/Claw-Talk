@@ -377,6 +377,7 @@
 
             var ws = new WebSocket(wsUrl);
             var reqId = Math.random().toString(36).substring(2, 10);
+            window._replyProcessed = false;
             
             ws.onopen = function() {
                 sttOutput.textContent = 'WS Connected, authenticating...';
@@ -431,22 +432,46 @@
                         // We store the text in a variable so we can push the final string to the UI
                         window._activeAgentReply = msg.payload.data.text;
                     } else if (msg.event === "agent" && msg.payload && msg.payload.stream === "lifecycle" && msg.payload.data.phase === "end") {
-                        // The agent finished talking!
+                        // Wait for the full 'chat' final event if possible, but fallback
+                        if (window._activeAgentReply) {
+                            finalizeReply(window._activeAgentReply);
+                        }
+                    } else if (msg.event === "chat" && msg.payload && msg.payload.state === "final") {
+                        var content = msg.payload.message.content;
+                        var finalTxt = "";
+                        if (Array.isArray(content)) {
+                            for (var i=0; i<content.length; i++) {
+                                if (content[i].type === "text") finalTxt += content[i].text + " ";
+                            }
+                        } else if (typeof content === "string") {
+                            finalTxt = content;
+                        }
+                        
+                        if (finalTxt.trim().length > 0) {
+                            finalizeReply(finalTxt);
+                        }
+                    }
+                    
+                    function finalizeReply(text) {
+                        if (window._replyProcessed) return;
+                        window._replyProcessed = true;
+                        
                         pttStatusEl.textContent = 'Hold to talk';
                         
-                        var replyText = window._activeAgentReply || "Done.";
-                        window._activeAgentReply = "";
-                        
                         var log = document.getElementById('chat-history');
-                        log.innerHTML += '<div class="chat-bubble chat-bot">' + replyText + '</div>';
+                        log.innerHTML += '<div class="chat-bubble chat-bot">' + text + '</div>';
                         log.scrollTop = log.scrollHeight;
                         
-                        // Speak the reply
-                        var utterance = new SpeechSynthesisUtterance(replyText);
-                        utterance.onend = function() {
+                        try {
+                            var utterance = new SpeechSynthesisUtterance(text);
+                            utterance.onend = function() {
+                                ws.close();
+                            };
+                            window.speechSynthesis.speak(utterance);
+                        } catch(e) {
                             ws.close();
-                        };
-                        window.speechSynthesis.speak(utterance);
+                        }
+                    }
                     } else if (msg.event === "chat" && msg.payload && msg.payload.state === "final" && !window.speechSynthesis.speaking) {
                         // Fallback if lifecycle end was missed
                         var content = msg.payload.message.content;
