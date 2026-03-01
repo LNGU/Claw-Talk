@@ -234,7 +234,7 @@
                 <div class="host-switcher" id="host-switcher" style="flex-shrink: 0;"></div>
                 
                 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex-shrink: 0; margin-bottom: 20px;">
-                    <div class="stt-output" id="stt-output" style="display:none; width: 100%;"></div>
+                    <div class="stt-output" id="stt-output" style="visibility:hidden; width: 100%; min-height: 24px;"></div>
                     <button class="ptt-button" id="ptt-btn">&#x1F399;</button>
                     <div class="ptt-status" id="ptt-status">Hold to talk</div>
                 </div>
@@ -351,7 +351,7 @@
             pttBtn.classList.add('recording');
             pttStatusEl.textContent = 'Listening via Azure...';
             sttOutput.textContent = '';
-            sttOutput.style.display = 'block';
+            sttOutput.style.visibility = 'visible';
             
             var key = "5hQ12rQR3KDGCaxD2JD1lORCaIiJXFYveIFGXMwtFr17KVUGbNiWJQQJ99CBACYeBjFXJ3w3AAAYACOGPnJQ";
             var region = "eastus";
@@ -485,7 +485,7 @@
                     } else if (msg.id && msg.id.startsWith("chat-")) {
                         if (msg.error) throw new Error("Send: " + msg.error.message);
                         pttStatusEl.textContent = 'Waiting for reply...';
-                        sttOutput.style.display = 'none';
+                        sttOutput.style.visibility = 'hidden';
                         
                         var log = document.getElementById('chat-history');
                         log.insertAdjacentHTML('afterbegin', '<div class="chat-bubble chat-user">' + text + '</div>');
