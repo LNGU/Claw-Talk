@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Claw Switcher V2 - Speech to Text</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 16px 20px 12px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid #ffffff10;
+        }
+        .header h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .header h1 span { color: #bb86fc; }
+        .header .subtitle { color: #888; font-size: 12px; margin-top: 2px; }
+        .tabs {
+            display: flex;
+            background: #111;
+            border-bottom: 1px solid #ffffff10;
+        }
+        .tab {
+            flex: 1; padding: 10px; text-align: center;
+            font-size: 13px; font-weight: 600; color: #666;
+            cursor: pointer; border-bottom: 2px solid transparent;
+            transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+        }
+        .tab.active { color: #bb86fc; border-bottom-color: #bb86fc; }
+        .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .tab-panel { display: none; padding: 16px 20px; }
+        .tab-panel.active { display: block; }
+        .hosts { display: flex; flex-direction: column; gap: 10px; }
+        .host-card {
+            background: #1a1a2e; border-radius: 14px;
+            display: flex; align-items: center;
+            border: 1px solid #ffffff08; transition: transform 0.1s;
+        }
+        .host-card a {
+            text-decoration: none; color: inherit;
+            flex: 1; min-width: 0; padding: 14px 16px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .host-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: linear-gradient(135deg, #bb86fc40, #bb86fc15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .host-info { min-width: 0; }
+        .host-name { font-weight: 700; font-size: 16px; }
+        .host-url { font-size: 11px; color: #666; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .host-del {
+            background: none; border: none; color: #cf6679; font-size: 18px;
+            cursor: pointer; padding: 14px; flex-shrink: 0; display: none;
+        }
+        .editing .host-del { display: block; }
+        .ptt-container {
+            display: flex; flex-direction: column;
+            align-items: center; padding: 30px 20px; gap: 20px;
+        }
+        .ptt-target { font-size: 14px; color: #888; }
+        .ptt-target strong { color: #bb86fc; }
+        .ptt-button {
+            width: 140px; height: 140px; border-radius: 50%;
+            border: 4px solid #bb86fc40;
+            background: radial-gradient(circle at 40% 40%, #2a1f4e, #1a1a2e);
+            color: #bb86fc; font-size: 40px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+            user-select: none; -webkit-user-select: none; touch-action: none;
+            position: relative;
+        }
+        .ptt-button::after {
+            content: ''; position: absolute; inset: -12px;
+            border-radius: 50%; border: 2px solid #bb86fc15; transition: all 0.3s;
+        }
+        .ptt-button.recording {
+            border-color: #ff5252;
+            background: radial-gradient(circle at 40% 40%, #4e1f1f, #2e1a1a);
+            color: #ff5252; transform: scale(1.08);
+            box-shadow: 0 0 40px #ff525230;
+        }
+        .ptt-button.recording::after {
+            border-color: #ff525240; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.5; }
+        }
+        .ptt-status { font-size: 14px; color: #666; height: 20px; }
+        .ptt-status.recording { color: #ff5252; font-weight: 600; }
+        .stt-output {
+            width: 100%; max-width: 400px;
+            min-height: 60px; max-height: 120px;
+            padding: 12px; border-radius: 12px;
+            background: #1a1a2e; border: 1px solid #ffffff15;
+            color: #ddd; font-size: 14px; line-height: 1.4;
+            overflow-y: auto; text-align: center;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .stt-output:empty::before { content: 'Transcribed text will appear here...'; color: #666; font-style: italic; }
+        .host-switcher {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 10px; width: 100%; max-width: 400px; margin-bottom: 10px;
+        }
+        .host-switch-btn {
+            flex: 1; min-width: 120px; padding: 16px 20px;
+            border-radius: 14px; border: 2px solid #ffffff15;
+            background: #1a1a2e; color: #999; font-size: 16px;
+            font-weight: 700; cursor: pointer; text-align: center;
+            transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+        }
+        .host-switch-btn.active {
+            border-color: #bb86fc; color: #bb86fc;
+            background: linear-gradient(135deg, #2a1f4e, #1a1a2e);
+            box-shadow: 0 0 20px #bb86fc20;
+        }
+        .section-title { font-size: 14px; font-weight: 600; color: #bb86fc; margin-bottom: 12px; }
+        .add-form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .add-form input {
+            padding: 12px 14px; border-radius: 10px; border: 1px solid #ffffff15;
+            background: #1a1a2e; color: #fff; font-size: 15px; outline: none;
+        }
+        .btn {
+            background: #bb86fc; color: #000; border: none; padding: 12px;
+            border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer;
+        }
+        .btn-outline {
+            background: none; border: 1px solid #ffffff15; color: #888;
+            padding: 10px; border-radius: 10px; font-size: 13px; cursor: pointer;
+            width: 100%; margin-top: 12px;
+        }
+        .empty { text-align: center; color: #555; padding: 40px 0; font-size: 14px; }
+        .settings-group { margin-bottom: 20px; }
+        .settings-group label { display: block; font-size: 13px; color: #888; margin-bottom: 6px; }
+        .settings-group select, .settings-group input {
+            width: 100%; padding: 10px 12px; border-radius: 10px;
+            border: 1px solid #ffffff15; background: #1a1a2e;
+            color: #fff; font-size: 14px; outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>&#x1F99E; Claw Switcher <span>V2</span></h1>
+        <div class="subtitle">Hosts &amp; Voice Commands</div>
+    </div>
+    <div class="tabs">
+        <div class="tab" data-tab="hosts" onclick="switchTab('hosts')">&#x1F5A5; Hosts</div>
+        <div class="tab active" data-tab="ptt" onclick="switchTab('ptt')">&#x1F399; Talk</div>
+        <div class="tab" data-tab="settings" onclick="switchTab('settings')">&#x2699;&#xFE0F; Settings</div>
+    </div>
+    <div class="content">
+        <div class="tab-panel" id="panel-hosts">
+            <div class="hosts" id="hosts"></div>
+            <button class="btn-outline" id="edit-toggle" onclick="toggleEdit()">&#x270F;&#xFE0F; Edit hosts</button>
+            <div id="add-section" style="display:none;">
+                <div class="add-form">
+                    <p class="section-title">Add Host</p>
+                    <input type="text" id="new-name" placeholder="Name (e.g. GX10)" autocomplete="off">
+                    <input type="url" id="new-url" placeholder="URL (e.g. gx10.example.ts.net)" autocomplete="off">
+                    <button class="btn" onclick="addHost()">Add Host</button>
+                </div>
+            </div>
+        </div>
+        <div class="tab-panel active" id="panel-ptt">
+            <div class="ptt-container">
+                <div class="ptt-target">Target: <strong id="ptt-target-name">&mdash;</strong></div>
+                <div class="host-switcher" id="host-switcher"></div>
+                <div class="stt-output" id="stt-output"></div>
+                <button class="ptt-button" id="ptt-btn">&#x1F399;</button>
+                <div class="ptt-status" id="ptt-status">Tap to start speaking</div>
+            </div>
+        </div>
+        <div class="tab-panel" id="panel-settings">
+            <div class="settings-group">
+                
+                <input type="hidden" id="api-token" value="173f9ac5d6a970d1fd578aea57ed895f0e5cc8be994e548f">
+            </div>
+            <div class="settings-group">
+                <label>Theme</label>
+                <select id="theme-select" onchange="applyTheme(this.value)">
+                    <option value="dark">Dark</option>
+                    <option value="midnight">Midnight Purple</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@latest/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+    <script>
+
+        var editing = false;
+        var hosts = [];
+        var pttTarget = null;
+        
+        var isRecording = false;
+        var pttBtn, pttStatusEl, sttOutput;
+        var recognizer = null;
+
+        function init() {
+            try { var stored = localStorage.getItem('clawHostsV2'); if (stored) hosts = JSON.parse(stored); } catch(e) {}
+            try { pttTarget = localStorage.getItem('clawTargetV2'); } catch(e) {}
+            
+            pttBtn = document.getElementById('ptt-btn');
+            pttStatusEl = document.getElementById('ptt-status');
+            sttOutput = document.getElementById('stt-output');
+            
+            renderHosts();
+            renderHostSwitcher();
+
+            if (pttBtn) {
+                pttBtn.addEventListener('touchstart', startRecording, {passive: false});
+                pttBtn.addEventListener('touchend', stopRecording, {passive: false});
+                pttBtn.addEventListener('mousedown', function(e) { if(e.button===0) startRecording(e); });
+                pttBtn.addEventListener('mouseup', function(e) { if(e.button===0) stopRecording(e); });
+                pttBtn.addEventListener('mouseleave', stopRecording);
+            }
+        }
+
+        function startRecording(e) {
+            if (e) e.preventDefault();
+            if (isRecording) return;
+            
+            if (!window.SpeechSDK) {
+                sttOutput.textContent = "Error: Azure Speech SDK not loaded. Check internet connection.";
+                return;
+            }
+
+            isRecording = true;
+            pttBtn.classList.add('recording');
+            pttStatusEl.textContent = 'Listening via Azure...';
+            sttOutput.textContent = '';
+            
+            var key = "YOUR_AZURE_API_KEY_HERE";
+            var region = "eastus";
+            
+            var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, region);
+            speechConfig.speechRecognitionLanguage = "en-US";
+            var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+            
+            recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+            
+            recognizer.recognizing = function(s, event) {
+                sttOutput.textContent = event.result.text;
+            };
+            
+            recognizer.recognized = function(s, event) {
+                if (event.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                    sttOutput.textContent = event.result.text;
+                }
+            };
+            
+            recognizer.canceled = function(s, event) {
+                console.log("Canceled", event);
+                sttOutput.textContent = "Canceled: " + event.errorDetails;
+                isRecording = false;
+                pttBtn.classList.remove('recording');
+            };
+
+            recognizer.sessionStopped = function(s, event) {
+                recognizer.close();
+                recognizer = null;
+            };
+            
+            recognizer.startContinuousRecognitionAsync();
+        }
+
+        function stopRecording(e) {
+            if (e) e.preventDefault();
+            if (isRecording && recognizer) {
+                isRecording = false;
+                pttBtn.classList.remove('recording');
+                pttStatusEl.textContent = 'Processing...';
+                
+                // Immediately extract the text to avoid Azure SDK teardown hangs
+                var text = sttOutput.textContent.trim();
+                
+                // Safely ask Azure to stop, but don't wait for the callback to send the text
+                try {
+                    recognizer.stopContinuousRecognitionAsync();
+                    setTimeout(function() {
+                        if (recognizer) {
+                            try { recognizer.close(); } catch(e){}
+                            recognizer = null;
+                        }
+                    }, 500);
+                } catch(e) {}
+                
+                if (text && text.length > 0 && !text.startsWith("Error:") && !text.startsWith("Canceled:")) {
+                    sendTextToGateway(text);
+                } else {
+                    sttOutput.textContent = 'No speech detected...';
+                    pttStatusEl.textContent = 'Hold to talk';
+                }
+            }
+        }
+
+                function sendTextToGateway(text) {
+            var target = hosts.find(function(h) { return h.id === pttTarget; });
+            if (!target) { pttStatusEl.textContent = 'No target host selected'; return; }
+            
+            pttStatusEl.textContent = 'Sending to ' + target.name + '…';
+            
+            var token = document.getElementById('api-token') ? document.getElementById('api-token').value : '';
+            // Clean up the target URL to ensure we don't double up /api/
+            var cleanUrl = target.url.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:').replace(/\/$/, '').replace(/\/api$/, '');
+            var wsUrl = cleanUrl + '/api/rpc?token=' + token;
+            
+            if (window.location.protocol === 'https:' && wsUrl.indexOf('ws://') === 0) {
+                wsUrl = 'wss://' + window.location.host + '/api/rpc?token=' + token;
+            }
+
+            var ws = new WebSocket(wsUrl);
+            var reqId = Math.random().toString(36).substring(2, 10);
+            
+            ws.onopen = function() {
+                sttOutput.textContent = 'WS Connected, authenticating...';
+            };
+            
+            ws.onmessage = function(e) {
+                try {
+                    var msg = JSON.parse(e.data);
+                    if (msg.event === "connect.challenge") {
+                        ws.send(JSON.stringify({
+                            type: "req",
+                            id: "conn-" + reqId,
+                            method: "connect",
+                            params: {
+                                minProtocol: 3,
+                                maxProtocol: 3,
+                                client: { id: "cli", version: "1.0.0", platform: "browser", mode: "cli" },
+                                auth: { token: token },
+                                role: "operator",
+                                scopes: ["operator.admin", "operator.write"]
+                            }
+                        }));
+                    } else if (msg.id === "conn-" + reqId) {
+                        if (msg.error) throw new Error("Auth: " + msg.error.message);
+                        var msgId = Math.random().toString(36).substring(2, 10);
+                        
+                        var S4 = function() { return (((1+Math.random())*0x10000)|0).toString(16).substring(1); };
+                        var idempotencyKey = (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+                        
+                        ws.send(JSON.stringify({
+                            type: "req",
+                            id: "chat-" + msgId,
+                            method: "chat.send",
+                            params: {
+                                sessionKey: "agent:main:main",
+                                message: "🎤 Voice Message: " + text,
+                                idempotencyKey: idempotencyKey
+                            }
+                        }));
+                        sttOutput.textContent = 'Sending payload...';
+                    } else if (msg.id && msg.id.startsWith("chat-")) {
+                        if (msg.error) throw new Error("Send: " + msg.error.message);
+                        pttStatusEl.textContent = 'Hold to talk';
+                        sttOutput.textContent = 'Message sent! ✅';
+                        setTimeout(function() {
+                            if (sttOutput.textContent.includes('Message sent!')) {
+                                sttOutput.textContent = '';
+                            }
+                        }, 1500);
+                        ws.close();
+                    }
+                } catch(err) {
+                    console.error("WS Error:", err);
+                    sttOutput.textContent = "Error: " + err.message;
+                    ws.close();
+                }
+            };
+            ws.onerror = function(err) {
+                console.error("WebSocket network error", err);
+                sttOutput.textContent = "WS Network/CORS Error to " + wsUrl.split('?')[0];
+                pttStatusEl.textContent = 'Hold to talk';
+            };
+        }
+
+        // --- UI TABS AND HOSTS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
+            document.querySelectorAll('.tab-panel').forEach(function(el) { el.classList.remove('active'); });
+            document.querySelector('.tab[data-tab="' + tabId + '"]').classList.add('active');
+            document.getElementById('panel-' + tabId).classList.add('active');
+        }
+
+        function renderHosts() {
+            var container = document.getElementById('hosts');
+            var html = '';
+            if (hosts.length === 0) {
+                container.innerHTML = '<div class="empty">No hosts added. Add one below.</div>';
+                return;
+            }
+            for (var i=0; i<hosts.length; i++) {
+                var h = hosts[i];
+                var emoji = h.name.charAt(0).toUpperCase();
+                html += '<div class="host-card">';
+                html += '<a href="' + h.url + '" target="_blank">';
+                html += '<div class="host-icon">' + emoji + '</div>';
+                html += '<div class="host-info"><div class="host-name">' + h.name + '</div><div class="host-url">' + h.url + '</div></div></a>';
+                html += '<button class="host-del" onclick="deleteHost(' + i + ')">&#x1F5D1;</button>';
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        function renderHostSwitcher() {
+            var container = document.getElementById('host-switcher');
+            var targetName = document.getElementById('ptt-target-name');
+            var html = '';
+            var validTarget = false;
+            
+            for (var i=0; i<hosts.length; i++) {
+                var h = hosts[i];
+                var isActive = (h.id === pttTarget);
+                if (isActive) { validTarget = true; targetName.textContent = h.name; }
+                html += '<button class="host-switch-btn ' + (isActive ? 'active' : '') + '" onclick="setTarget(\'' + h.id + '\')">' + h.name + '</button>';
+            }
+            
+            if (!validTarget && hosts.length > 0) {
+                setTarget(hosts[0].id);
+                return;
+            } else if (hosts.length === 0) {
+                targetName.textContent = 'None';
+                html = '<div class="empty" style="padding:10px;">Add hosts in the Hosts tab to use Voice Commands</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function setTarget(id) {
+            pttTarget = id;
+            localStorage.setItem('clawTargetV2', id);
+            renderHostSwitcher();
+        }
+
+        function toggleEdit() {
+            editing = !editing;
+            var panel = document.getElementById('panel-hosts');
+            var addSec = document.getElementById('add-section');
+            if (editing) {
+                panel.classList.add('editing');
+                addSec.style.display = 'block';
+                document.getElementById('edit-toggle').innerHTML = '&#x2705; Done editing';
+            } else {
+                panel.classList.remove('editing');
+                addSec.style.display = 'none';
+                document.getElementById('edit-toggle').innerHTML = '&#x270F;&#xFE0F; Edit hosts';
+            }
+        }
+
+        function addHost() {
+            var n = document.getElementById('new-name').value.trim();
+            var u = document.getElementById('new-url').value.trim();
+            if (!n || !u) return alert('Name and URL required');
+            if (!u.startsWith('http')) u = 'https://' + u;
+            hosts.push({ id: 'h_'+Date.now(), name: n, url: u });
+            saveHosts();
+            document.getElementById('new-name').value = '';
+            document.getElementById('new-url').value = '';
+            renderHosts();
+            renderHostSwitcher();
+        }
+
+        function deleteHost(idx) {
+            if (!confirm('Delete ' + hosts[idx].name + '?')) return;
+            hosts.splice(idx, 1);
+            saveHosts();
+            renderHosts();
+            renderHostSwitcher();
+        }
+
+        function saveHosts() {
+            localStorage.setItem('clawHostsV2', JSON.stringify(hosts));
+        }
+
+        function applyTheme(t) {
+            if (t === 'midnight') {
+                document.body.style.background = '#0d0d14';
+                document.querySelector('.header').style.background = 'linear-gradient(135deg, #181029 0%, #110b1a 100%)';
+            } else {
+                document.body.style.background = '#0a0a0f';
+                document.querySelector('.header').style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+            }
+            localStorage.setItem('clawTheme', t);
+        }
+        
+        window.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
