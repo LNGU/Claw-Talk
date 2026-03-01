@@ -424,7 +424,7 @@
             isRecording = true;
             pttBtn.classList.add('connecting');
             window._azureReady = false;
-            pttStatusEl.innerHTML = '<div class="spinner"></div> Getting ready...';
+            pttStatusEl.innerHTML = '&nbsp;';
             sttOutput.textContent = 'Waking up microphone...';
             sttOutput.style.visibility = 'visible';
             
@@ -477,7 +477,7 @@
             if (isRecording && recognizer) {
                 isRecording = false;
                 pttBtn.classList.remove('recording');
-                pttStatusEl.textContent = 'Processing...';
+                pttStatusEl.innerHTML = '&nbsp;';
                 
                 var finalGrabbed = false;
                 
@@ -590,7 +590,7 @@
                         sttOutput.textContent = 'Sending payload...';
                     } else if (msg.id && msg.id.startsWith("chat-")) {
                         if (msg.error) throw new Error("Send: " + msg.error.message);
-                        pttStatusEl.innerHTML = 'Waiting for reply...';
+                        pttStatusEl.innerHTML = '&nbsp;';
                         pttBtn.classList.add('waiting');
                         sttOutput.style.visibility = 'hidden';
                         
